@@ -1,0 +1,62 @@
+-- Users table (optional, only if you want login/multi-user support)
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) UNIQUE,
+    password_hash VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table for storing shortened URLs
+
+CREATE TABLE short_urls (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    long_url TEXT NOT NULL,
+    shortcode TEXT UNIQUE,
+    expiry_at DATETIME,
+    validity_minutes INTEGER
+);
+
+
+-- Table for tracking clicks (for analytics)
+CREATE TABLE click_logs (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    short_url_id INT NOT NULL,
+    clicked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    referrer TEXT,
+    user_agent TEXT,
+    ip_address VARCHAR(50),
+    FOREIGN KEY (short_url_id) REFERENCES short_urls(id) ON DELETE CASCADE
+);
+INSERT INTO short_urls (long_url, shortcode, expiry_at, validity_minutes)
+VALUES (
+    'https://example.com/very/long/url',
+    'mycode123',
+    DATETIME('now', '+30 minutes'),
+    30
+);
+
+UPDATE short_urls
+SET clicks = clicks + 1
+WHERE shortcode = 'mycode123';
+
+INSERT INTO click_logs (short_url_id, referrer, user_agent, ip_address)
+SELECT id, 'https://google.com', 'Mozilla/5.0', '192.168.0.1'
+FROM short_urls
+WHERE shortcode = 'mycode123';
+
+SELECT s.shortcode,
+       s.long_url,
+       s.created_at,
+       s.expiry_at,
+       s.clicks,
+       c.clicked_at,
+       c.referrer,
+       c.user_agent,
+       c.ip_address
+FROM short_urls s
+LEFT JOIN click_logs c ON s.id = c.short_url_id
+WHERE s.shortcode = 'mycode123'
+ORDER BY c.clicked_at DESC;
+
+DELETE FROM short_urls
+WHERE expiry_at < NOW();

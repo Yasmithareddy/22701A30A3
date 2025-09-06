@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart URL Shortener</title>
+  <style>
+    /* Light Multi-Color Gradient Background */
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: "Times New Roman", Times, serif;
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 30%, #a1c4fd 60%, #c2e9fb 100%);
+      background-size: 300% 300%;
+      animation: gradientShift 10s ease infinite;
+    }
+
+    /* Card Container */
+    .container {
+      background: rgba(255, 255, 255, 0.9);
+      padding: 30px 40px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    /* Heading */
+    h1 {
+      margin-bottom: 20px;
+      font-size: 30px;
+      color: #222;
+      font-weight: bold;
+    }
+
+    /* Subtext */
+    p.subtitle {
+      color: #444;
+      font-size: 16px;
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+
+    /* Inputs */
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      font-family: "Times New Roman", Times, serif;
+    }
+
+    /* Button */
+    button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(90deg, #6a85b6, #bac8e0);
+      color: #fff;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-family: "Times New Roman", Times, serif;
+    }
+    button:hover {
+      background: linear-gradient(90deg, #bac8e0, #6a85b6);
+      transform: scale(1.05);
+    }
+
+    /* Result / Stats */
+    .result, .stats {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f7fafc;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #444;
+      text-align: left;
+    }
+
+    /* Gradient Animation */
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Fade In */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Smart URL Shortener</h1>
+    <p class="subtitle">Lightweight solutions for big and small problems</p>
+
+    <div class="url-form">
+      <input type="text" id="longUrl" placeholder="Enter your long URL here" />
+      <input type="number" id="validity" placeholder="Validity (minutes, optional)" />
+      <input type="text" id="shortcode" placeholder="Custom shortcode (optional)" />
+      <button onclick="shortenUrl()">Shorten URL</button>
+    </div>
+
+    <div class="result" id="result"></div>
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <script>
+    async function shortenUrl() {
+      const url = document.getElementById("longUrl").value;
+      const validity = document.getElementById("validity").value;
+      const shortcode = document.getElementById("shortcode").value;
+
+      const body = { url };
+      if (validity) body.validity = parseInt(validity);
+      if (shortcode) body.shortcode = shortcode;
+
+      try {
+        const res = await fetch("http://localhost:4000/shorturls", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        document.getElementById("result").innerHTML =
+          `<p><strong>Shortened URL:</strong> 
+             <a href="${data.shortlink}" target="_blank">${data.shortlink}</a></p>
+           <p><strong>Expiry:</strong> ${data.expiry}</p>`;
+      } catch (err) {
+        document.getElementById("result").innerText = "⚠ Error shortening URL.";
+      }
+    }
+  </script>
+</body>
+</html>
